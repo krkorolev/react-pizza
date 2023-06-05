@@ -1,41 +1,55 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setSort } from "../redux/slices/filterSlice";
+import { setSort, SortPizzas, SortPropertyEnum } from "../redux/slices/filterSlice";
+import { RootState } from "../redux/store";
 
-export const popupArray = [
+type PopupItem = {
+  name: string;
+  sortProperty: SortPropertyEnum;
+};
+
+export const popupArray: PopupItem[] = [
   {
     name: "популярности (DESK)",
-    sortProperty: "rating",
+    sortProperty: SortPropertyEnum.RATING_DESC,
   },
   {
     name: "популярности (ASC)",
-    sortProperty: "-rating",
+    sortProperty: SortPropertyEnum.RATING_ASC,
   },
   {
     name: "цене (DESK)",
-    sortProperty: "price",
+    sortProperty: SortPropertyEnum.PRICE_DESC,
   },
   {
     name: "цене (ASC)",
-    sortProperty: "-price",
+    sortProperty: SortPropertyEnum.PRICE_ASC,
   },
   {
     name: "алфавиту (DESK)",
-    sortProperty: "title",
+    sortProperty: SortPropertyEnum.PRICE_DESC,
   },
   {
     name: "алфавиту (ASC)",
-    sortProperty: "-title",
+    sortProperty: SortPropertyEnum.PRICE_ASC,
   },
 ];
+type onClickSortEvent = MouseEvent & {
+  path: Node[];
+};
 
-const Sort = () => {
-  const sortRef = useRef();
+type SortProps = {
+  value: SortPizzas
+}
+
+const SortPopup: React.FC<SortProps> = React.memo (({value}) => {
+  const sortRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const onClickSort = (event) => {
-      if (!event.composedPath().includes(sortRef.current)) {
+    const onClickSort = (event: MouseEvent) => {
+      const _event = event as onClickSortEvent;
+      if (sortRef.current && !event.composedPath().includes(sortRef.current)) {
         setIsVisible(false);
       }
     };
@@ -44,11 +58,11 @@ const Sort = () => {
   }, []);
 
   const dispatch = useDispatch();
-  const activePopup = (el) => {
+  const activePopup = (el: PopupItem) => {
     dispatch(setSort(el));
     setIsVisible(false);
   };
-  const itemsSort = useSelector((state) => state.filter.sort);
+  // const itemsSort = useSelector((state: RootState) => state.filter.sort);
 
   return (
     <div ref={sortRef} className="sort">
@@ -66,7 +80,7 @@ const Sort = () => {
           />
         </svg>
         <b>Сортировка по:</b>
-        <span>{itemsSort.name}</span>
+        <span>{value.name}</span>
       </div>
       {isVisible && (
         <div className="sort__popup">
@@ -75,7 +89,7 @@ const Sort = () => {
               <li
                 key={i}
                 onClick={() => activePopup(el)}
-                className={itemsSort.name === el.name ? "active" : ""}
+                className={value.name === el.name ? "active" : ""}
               >
                 {el.name}
               </li>
@@ -85,6 +99,6 @@ const Sort = () => {
       )}
     </div>
   );
-};
+});
 
-export default Sort;
+export default SortPopup;

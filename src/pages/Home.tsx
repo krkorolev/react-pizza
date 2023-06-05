@@ -1,81 +1,79 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useEffect, useContext, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import qs from "qs";
 
 import { searchContext } from "../App";
-import Categories from ".././components/Categories";
-import Sort, { popupArray } from ".././components/Sort";
-import PizzaBlock from ".././components/PizzaBlock";
-import Skeleton from ".././components/PizzaBlock/Skeleton";
+import Categories from "../components/Categories";
+import SortPopup, { popupArray } from "../components/Sort";
+import PizzaBlock from "../components/PizzaBlock";
+import Skeleton from "../components/PizzaBlock/Skeleton";
 import Pagination from "../components/Pagination/Pagination";
 import {
   setActiveCategories,
   setCurrentPage,
   setFiltres,
 } from "../redux/slices/filterSlice";
-import axios from "axios";
+import { fetchPizza, FetchPizzasArgs } from "../redux/slices/pizzaSlice";
+import { RootState } from "../redux/store";
 
 const Home = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const activeCategories = useSelector(
-    (state) => state.filter.activeCategories
+    (state: RootState) => state.filter.activeCategories
   );
+
   const isSearch = useRef(false);
   const isMounted = useRef(false);
 
-  const itemsSort = useSelector((state) => state.filter.sort);
-  const currentPage = useSelector((state) => state.filter.page);
+  const itemsSort = useSelector((state: RootState) => state.filter.sort);
+  const currentPage = useSelector(
+    (state: RootState) => state.filter.currentPage
+  );
+  const { pizzas, status } = useSelector((state: RootState) => state.pizza);
 
-  const { searchValue } = useContext(searchContext);
+  const { searchValue } = useContext<any>(searchContext);
 
-  const [pizzas, setPizzas] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchPizzas = async () => {
-    setIsLoading(true);
+  const getPizzas = async () => {
     const sortBy = itemsSort.sortProperty.replace("-", "");
     const order = itemsSort.sortProperty.includes("-") ? "asc" : "desc";
-    try {
-      const resp = await axios(
-        `https://645ce550e01ac610589682d1.mockapi.io/items?page=${currentPage}&limit=4&category=${
-          activeCategories > 0 ? activeCategories : ""
-        }&sortBy=${sortBy}&order=${order}`
-      );
-      setPizzas(resp.data);
-    } catch (error) {
-      alert("Ошибка при получении данных");
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
-    window.scrollTo(0, 0);
+    dispatch(
+      // @ts-ignore
+      fetchPizza({
+        sortBy,
+        order,
+        currentPage,
+        activeCategories,
+      })
+    );
   };
+
   useEffect(() => {
     if (!isSearch.current) {
-      fetchPizzas();
+      getPizzas();
     }
     isSearch.current = false;
   }, [activeCategories, itemsSort, currentPage]);
 
   useEffect(() => {
     if (window.location.search) {
-      const params = qs.parse(window.location.search.substring(1));
+      const params = qs.parse(
+        window.location.search.substring(1)
+      ) as unknown as FetchPizzasArgs;
 
-      const sort = popupArray.find(
-        (obj) => obj.sortProperty === params.sortProperty
-      );
+      const sort = popupArray.find((obj) => obj.sortProperty === params.sortBy);
 
       dispatch(
         setFiltres({
           activeCategories: params.activeCategories,
           currentPage: params.currentPage,
-          sort,
+          sort: sort ? sort : popupArray[0],
         })
       );
-      isSearch.current = true;
     }
   }, []);
+
   useEffect(() => {
     if (isMounted.current) {
       const queryString = qs.stringify({
@@ -91,12 +89,10 @@ const Home = () => {
   const searchPizzas = pizzas.filter((el) =>
     el.title.toLowerCase().includes(searchValue.toLowerCase())
   );
-  const dispatch = useDispatch();
-
-  const onChangeCategories = (id) => {
+  const onChangeCategories = React.useCallback((id: number) => {
     dispatch(setActiveCategories(id));
-  };
-  const onCahangePage = (id) => {
+  }, []);
+  const onCahangePage = (id: number) => {
     dispatch(setCurrentPage(id));
   };
 
@@ -107,13 +103,15 @@ const Home = () => {
           activeCategories={activeCategories}
           setActiveCategories={onChangeCategories}
         />
-        <Sort />
+        <SortPopup value={itemsSort}/>
       </div>
       <h2 className="content__title">Все пиццы</h2>
       <div className="content__items">
-        {isLoading
+        {status === "loading"
           ? [...Array(6)].map((_, i) => <Skeleton key={i} />)
-          : searchPizzas.map((obj) => <PizzaBlock key={obj.id} {...obj} />)}
+          : searchPizzas.map((obj) => (
+              <PizzaBlock key={obj.id} {...obj} />
+            ))}
       </div>
       <Pagination currentPage={currentPage} onChangePage={onCahangePage} />
     </div>

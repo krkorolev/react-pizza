@@ -182,6 +182,22 @@ body {
       width: 13%;
 
       &-minus {
+        &:disabled {
+          border-color: #c2bbb8;
+
+          &:active {
+            transform: none;
+          }
+
+          &:hover {
+            background-color: transparent;
+          }
+
+          svg path {
+            fill: #c2bbb8
+          }
+        }
+
         svg {
           path:first-of-type {
             display: none;
@@ -313,6 +329,8 @@ body {
 
     h2 {
       font-size: 32px;
+
+      padding-bottom: 30px;
       margin-bottom: 10px;
     }
 
@@ -321,6 +339,8 @@ body {
       line-height: 145.4%;
       letter-spacing: 0.01em;
       color: #777777;
+      padding-bottom: 40px;
+
     }
 
     icon {
