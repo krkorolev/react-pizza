@@ -39,7 +39,6 @@ const Home = () => {
     const sortBy = itemsSort.sortProperty.replace("-", "");
     const order = itemsSort.sortProperty.includes("-") ? "asc" : "desc";
     dispatch(
-      // @ts-ignore
       fetchPizza({
         sortBy,
         order,

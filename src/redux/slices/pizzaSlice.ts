@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { ThunkAction, ThunkDispatch } from 'redux-thunk'
 import axios from "axios";
 import { CartItems } from "./cartSlice";
 
@@ -12,8 +13,8 @@ export type Pizza = {
   id: string;
   title: string;
   imageUrl: string;
-  types: string[];
-  sizes: number[];
+  types: string;
+  sizes: number;
   price: number;
   count: number;
 };
@@ -24,9 +25,9 @@ export enum Status {
 
 } 
 
-export const fetchPizza = createAsyncThunk(
-  "pizza/fetchByPizzas",
-  async (params: FetchPizzasArgs) => {
+export const fetchPizza = createAsyncThunk<CartItems[],FetchPizzasArgs>(
+  "pizza/fetchPizza",
+  async (params) => {
     const { sortBy, order, currentPage, activeCategories } = params;
     const { data } = await axios.get(
       `https://645ce550e01ac610589682d1.mockapi.io/items?page=${currentPage}&limit=4&category=${

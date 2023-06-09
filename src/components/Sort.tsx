@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setSort, SortPizzas, SortPropertyEnum } from "../redux/slices/filterSlice";
-import { RootState } from "../redux/store";
 
 type PopupItem = {
   name: string;

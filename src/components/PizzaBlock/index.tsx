@@ -42,7 +42,6 @@ const PizzaBlock: React.FC<PizzaBlockProps> = ({
       sizes: sizes[activeSize],
       count,
     };
-      // @ts-ignore
 
     dispatch(addItemPizza(item));
   };
